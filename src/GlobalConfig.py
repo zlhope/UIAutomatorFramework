@@ -20,6 +20,6 @@ SlaveEmailID="sdeviceeleven@gmail.com; "
 ModulesToBeExecuted=[]
 
 WifiName=u'M-Guest'
-WifiPassword=u"InternetConnection2016"
+WifiPassword=u"zebfazebra"
 
 #ro.product.device
