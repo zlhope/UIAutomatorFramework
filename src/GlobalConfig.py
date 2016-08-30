@@ -1,10 +1,10 @@
 #Master Device
-MasterModel="TC75"
+MasterModel="ET5X"
 MasterAndroidVersion="LL" #JB/KK/LL/MM
 TypeOfTesting="Stress" #Sanity/Stability/Stress/Functional
 TypeOfDevice="Data" #Voice/Data/Batch
-MasterGMSnonGMS="" #keep it "" for non-GMS and _GMS for GMS devices
-MasterDeviceId="e7a856df"
+MasterGMSnonGMS="_GMS" #keep it "" for non-GMS and _GMS for GMS devices
+MasterDeviceId="TA89902O0Q"
 MasterPhoneNumber="6316055351"
 MasterEmailID="mdeviceone@gmail.com"
 
@@ -20,6 +20,6 @@ SlaveEmailID="sdeviceeleven@gmail.com; "
 ModulesToBeExecuted=[]
 
 WifiName=u'M-Guest'
-WifiPassword=u"Connect2Solutions2016"
+WifiPassword=u"InternetConnection2016"
 
 #ro.product.device

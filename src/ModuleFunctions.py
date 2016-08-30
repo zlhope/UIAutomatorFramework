@@ -14,8 +14,8 @@ import os
 import Config
 import sys
 import subprocess
-from pytesser import * #[Ashish]importing python wrapper of tesseract
-from PIL import Image, ImageOps #[Ashish]importing required image classes
+#from pytesser import * #[Ashish]importing python wrapper of tesseract #riku
+#from PIL import Image, ImageOps #[Ashish]importing required image classes
 import re #[Ashish] importing regular expression module
 import adb_interface
 Config=Config.Config()
@@ -51,16 +51,16 @@ class Unit:
         self.adb = adb_interface.AdbInterface(deviceId)
         manufacturer=self.adb.SendShellCommand("getprop ro.product.manufacturer").strip()
         print manufacturer
-        if not (manufacturer == "Zebra Technologies" or manufacturer=="Motorola Solutions"):
-            if manufacturer == "error: device not found":
-                print "error: device not found"
-                if self.logger is not None:
-                    self.logger.log("error: device not found",'E')
-            else:
-                print "Test is running on non Zebra device"
-                if self.logger is not None:
-                    self.logger.log("Test is running on non Zebra device",'E')
-            os._exit(1)
+        # if not (manufacturer == "Zebra Technologies" or manufacturer=="Motorola Solutions"):
+        #     if manufacturer == "error: device not found":
+        #         print "error: device not found"
+        #         if self.logger is not None:
+        #             self.logger.log("error: device not found",'E')
+        #     else:
+        #         print "Test is running on non Zebra device"
+        #         if self.logger is not None:
+        #             self.logger.log("Test is running on non Zebra device",'E')
+        #     os._exit(1)
             
         
         #create object variables storing device height & width
@@ -847,7 +847,7 @@ class Unit:
             #get dump of current window in pipe
             if self.logger is not None:
                 self.logger.log("get dump of current window in pipe",'D')
-            self.window_dump=subprocess.Popen(self.command+' dumpsys window windows', shell=False, stdout=subprocess.PIPE)
+            self.window_dump=subprocess.Popen(self.command+' dumpsys window windows', shell=True, stdout=subprocess.PIPE)
             #read the pipe as stream of strings
             self.window_dump=self.window_dump.stdout.read()
 
@@ -869,166 +869,166 @@ class Unit:
                 self.logger.log("getCurrentActivity can't be performed due to:"+str(e),'E')
             return None
 
-#[Ashish]
-# ----------------------------------------------------------------------------------------------------------------------
-#   searchTextInImage
+# #[Ashish]
+# # ----------------------------------------------------------------------------------------------------------------------
+# #   searchTextInImage
+# #
+# #   DESCRIPTION
+# #   Grab the current screen and see if the passed string exists on that screen
+# #   if it does Move the mouse to the X,Y coords of the string
+# #   Args 2
+# #   Arg. 1.
+# #   self - Instance of the self
+# #   Arg. 2.
+# #   searchText - [str]string to be found on the current screen
+# #   Arg. 3
+# #   scrollable - [Bool]if screen is scrollable
+# #   RETURN VALUE
+# #   Boolean,all the strings parsed by OCR for the screen
+# # ----------------------------------------------------------------------------------------------------------------------
+#     def ocrSearchTextInScreen(self, searchText, scrollable=False):
 #
-#   DESCRIPTION
-#   Grab the current screen and see if the passed string exists on that screen
-#   if it does Move the mouse to the X,Y coords of the string
-#   Args 2
-#   Arg. 1.
-#   self - Instance of the self
-#   Arg. 2.
-#   searchText - [str]string to be found on the current screen
-#   Arg. 3
-#   scrollable - [Bool]if screen is scrollable
-#   RETURN VALUE
-#   Boolean,all the strings parsed by OCR for the screen
-# ----------------------------------------------------------------------------------------------------------------------
-    def ocrSearchTextInScreen(self, searchText, scrollable=False):
-
-        try:
-            count=0
-            FNULL = open(os.devnull, "w")
-            # Scroll through screen until the test is found or we run out of screen
-            while True:
-                
-                # Get screenshot
-                if self.logger is not None:
-                        self.logger.log("capturing screenshot for OCR processing",'D')
-                filepath=os.getcwd()+"\\screen.png"
-                sceenshotCmd = 'java -jar screenshot.jar -s ' + self.device + ' "' + filepath 
-                print sceenshotCmd
-                temp = subprocess.call(sceenshotCmd, stdout=FNULL, stderr=subprocess.STDOUT)
-                
-                #read image as object 
-                im = Image.open(os.getcwd()+"\\screen.png")
-                #convert the image in buffer to grayscale
-                im = im.convert("L")
-                
-                
-                #Ashish- added this enhancement for lesser resolution phones
-                #in case screen resolution is small, double the size of image for better OCR operation 
-                if im.size[0] < 720:
-                    im = im.resize((im.size[0]*2,im.size[1]*2))
-                print im.size
-                #call pytesser function to convert image content to strings
-                text=image_to_string(im)
-                print text
-                #increase the counter
-                count+=1
-                #if serach text is found in converted text return true and converted text
-                if searchText in text:
-                    return True,text
-                #if scrollable screen scroll for 5 times and if not find stop
-                elif scrollable and count < 5 :
-                    self.input(scrollable=True).scroll.vert.forward()
-                else:
-                    raise Exception("String couldn't be found on the screen")
-            
-        
-        except Exception, e:
-            if self.logger is not None:
-                self.logger.log("ocrSearchTextInScreen(self, searchText, scrollable=False) can't be performed due to:"+str(e),'E')
-            return False,None
-
-
-#Ashish- added this generic function
-# ----------------------------------------------------------------------------------------------------------------------
-#   getStringOfNextLine
+#         try:
+#             count=0
+#             FNULL = open(os.devnull, "w")
+#             # Scroll through screen until the test is found or we run out of screen
+#             while True:
 #
-#   DESCRIPTION
-#   Get the next string from the searched string on the screen
-#   Args 2
-#   Arg. 1.
-#   self - Instance of the self
-#   Arg. 2.
-#   searchText - [str]string to be found on the current screen
-#   Arg. 3.
-#   scrollable - [Bool]if screen is scrollable
-#   RETURN VALUE
-#   string on next line or None
-#  ----------------------------------------------------------------------------------------------------------------------
-    def getStringOfNextLine(self, searchText, scrollable=True):
-
-        try:
-
-            #get all the strings from the screen
-            texts=self.ocrSearchTextInScreen(searchText,scrollable)
-            #if text is found
-            if texts[0]:
-                #create a list of all the strings shown per line on screen
-                textList=texts[1].split('\n')
-                #remove empty string items
-                while '' in textList:
-                    textList.remove('')
-                #return the item in next line to  My phone number option in screen
-                result=textList[textList.index(searchText)+1]
-                print result
-
-                return result
-            else:
-                raise Exception("The searched string couldn't be found")
-        
-        except Exception, e:
-            if self.logger is not None:
-                self.logger.log("getStringOfNextLine(self, searchText, scrollable=True) can't be performed due to:"+str(e),'E')
-            return None
-
-                
-                    
-#Ashish- updated function to use "getStringOfNextLine" internally
-# ----------------------------------------------------------------------------------------------------------------------
-#   getPhoneNumber
+#                 # Get screenshot
+#                 if self.logger is not None:
+#                         self.logger.log("capturing screenshot for OCR processing",'D')
+#                 filepath=os.getcwd()+"\\screen.png"
+#                 sceenshotCmd = 'java -jar screenshot.jar -s ' + self.device + ' "' + filepath
+#                 print sceenshotCmd
+#                 temp = subprocess.call(sceenshotCmd, stdout=FNULL, stderr=subprocess.STDOUT)
 #
-#   DESCRIPTION
-#   Get the phone number of the device
-#   Args 2
-#   Arg. 1.
-#   self - Instance of the self
-#   Arg. 2.
-#   searchText - [str]string to be found on the current screen
-#   RETURN VALUE
-#   phone number or None
-#  ----------------------------------------------------------------------------------------------------------------------
-    def getPhoneNumber(self, searchText="My phone number"):
+#                 #read image as object
+#                 im = Image.open(os.getcwd()+"\\screen.png")
+#                 #convert the image in buffer to grayscale
+#                 im = im.convert("L")
+#
+#
+#                 #Ashish- added this enhancement for lesser resolution phones
+#                 #in case screen resolution is small, double the size of image for better OCR operation
+#                 if im.size[0] < 720:
+#                     im = im.resize((im.size[0]*2,im.size[1]*2))
+#                 print im.size
+#                 #call pytesser function to convert image content to strings
+#                 text=image_to_string(im)
+#                 print text
+#                 #increase the counter
+#                 count+=1
+#                 #if serach text is found in converted text return true and converted text
+#                 if searchText in text:
+#                     return True,text
+#                 #if scrollable screen scroll for 5 times and if not find stop
+#                 elif scrollable and count < 5 :
+#                     self.input(scrollable=True).scroll.vert.forward()
+#                 else:
+#                     raise Exception("String couldn't be found on the screen")
+#
+#
+#         except Exception, e:
+#             if self.logger is not None:
+#                 self.logger.log("ocrSearchTextInScreen(self, searchText, scrollable=False) can't be performed due to:"+str(e),'E')
+#             return False,None
+#
+#
+# #Ashish- added this generic function
+# # ----------------------------------------------------------------------------------------------------------------------
+# #   getStringOfNextLine
+# #
+# #   DESCRIPTION
+# #   Get the next string from the searched string on the screen
+# #   Args 2
+# #   Arg. 1.
+# #   self - Instance of the self
+# #   Arg. 2.
+# #   searchText - [str]string to be found on the current screen
+# #   Arg. 3.
+# #   scrollable - [Bool]if screen is scrollable
+# #   RETURN VALUE
+# #   string on next line or None
+# #  ----------------------------------------------------------------------------------------------------------------------
+#     def getStringOfNextLine(self, searchText, scrollable=True):
+#
+#         try:
+#
+#             #get all the strings from the screen
+#             texts=self.ocrSearchTextInScreen(searchText,scrollable)
+#             #if text is found
+#             if texts[0]:
+#                 #create a list of all the strings shown per line on screen
+#                 textList=texts[1].split('\n')
+#                 #remove empty string items
+#                 while '' in textList:
+#                     textList.remove('')
+#                 #return the item in next line to  My phone number option in screen
+#                 result=textList[textList.index(searchText)+1]
+#                 print result
+#
+#                 return result
+#             else:
+#                 raise Exception("The searched string couldn't be found")
+#
+#         except Exception, e:
+#             if self.logger is not None:
+#                 self.logger.log("getStringOfNextLine(self, searchText, scrollable=True) can't be performed due to:"+str(e),'E')
+#             return None
+#
+#
+#
+# #Ashish- updated function to use "getStringOfNextLine" internally
+# # ----------------------------------------------------------------------------------------------------------------------
+# #   getPhoneNumber
+# #
+# #   DESCRIPTION
+# #   Get the phone number of the device
+# #   Args 2
+# #   Arg. 1.
+# #   self - Instance of the self
+# #   Arg. 2.
+# #   searchText - [str]string to be found on the current screen
+# #   RETURN VALUE
+# #   phone number or None
+# #  ----------------------------------------------------------------------------------------------------------------------
+#     def getPhoneNumber(self, searchText="My phone number"):
+#
+#         try:
+#             # get device phone number
+#             if not self.launchApp(Config.SettingApp['text']):
+#                 raise Exception("Unable to launch Settings App")
+#             self.input.wait.update()
+#
+#             # Go to ABOUT PHONE->STATUS
+#             if not self.tapOn(uiText=Config.AboutText['text'], scrollable=True):
+#                 raise Exception("Couldn't find About Phone selection")
+#             self.input.wait.update()
+#             if not self.tapOn(uiText=Config.StatusText['text'], scrollable=True):
+#                 raise Exception("Couldn't find Status selection")
+#             self.input.wait.update()
+#
+#             # Some device have the phone number in a submenu called SIM STATUS
+#             if self.exists(uiText=Config.SIMStatusText['text']):
+#                 self.tapOn(uiText=Config.SIMStatusText['text'])
+#                 self.input.wait.update()
+#
+#             #return the next line to "My phone number" string
+#             result=self.getStringOfNextLine(searchText,True)
+#
+#             print result
+#
+#             if result is not None or "Unknown":
+#                 #remove dashes from phone number
+#                 return result.replace('-','')
+#             else:
+#                 raise Exception("Phone number not found, please check if phone has valid network")
+#
+#         except Exception, e:
+#             if self.logger is not None:
+#                 self.logger.log("getPhoneNumber() can't be performed due to:"+str(e),'E')
+#             return None
 
-        try:
-            # get device phone number
-            if not self.launchApp(Config.SettingApp['text']):
-                raise Exception("Unable to launch Settings App")
-            self.input.wait.update()
-
-            # Go to ABOUT PHONE->STATUS
-            if not self.tapOn(uiText=Config.AboutText['text'], scrollable=True):
-                raise Exception("Couldn't find About Phone selection")
-            self.input.wait.update()
-            if not self.tapOn(uiText=Config.StatusText['text'], scrollable=True):
-                raise Exception("Couldn't find Status selection")
-            self.input.wait.update()
-
-            # Some device have the phone number in a submenu called SIM STATUS
-            if self.exists(uiText=Config.SIMStatusText['text']):
-                self.tapOn(uiText=Config.SIMStatusText['text'])
-                self.input.wait.update()
-            
-            #return the next line to "My phone number" string
-            result=self.getStringOfNextLine(searchText,True)
-            
-            print result
-
-            if result is not None or "Unknown":
-                #remove dashes from phone number
-                return result.replace('-','')
-            else:
-                raise Exception("Phone number not found, please check if phone has valid network")
-        
-        except Exception, e:
-            if self.logger is not None:
-                self.logger.log("getPhoneNumber() can't be performed due to:"+str(e),'E')
-            return None
-        
         
 #Ashish- added this function
 # ----------------------------------------------------------------------------------------------------------------------

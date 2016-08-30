@@ -67,11 +67,11 @@ class Logger:
         elif os.path.exists('C:\\Python27\\screenshot.jar'):
             self.screenshotJar='"C:\\Python27\\screenshot.jar"'
 
-        productName = subprocess.Popen('adb -s ' + self.device_id + ' shell getprop ro.product.device', shell=False,
+        productName = subprocess.Popen('adb -s ' + self.device_id + ' shell getprop ro.product.device', shell=True,
                                        stdout=subprocess.PIPE).stdout.read().rstrip()
-        buildName = subprocess.Popen('adb -s ' + self.device_id + ' shell getprop ro.build.display.id', shell=False,
+        buildName = subprocess.Popen('adb -s ' + self.device_id + ' shell getprop ro.build.display.id', shell=True,
                                      stdout=subprocess.PIPE).stdout.read().rstrip()
-        androidVersion = subprocess.Popen('adb -s ' + self.device_id + ' shell getprop ro.build.version.release', shell=False,
+        androidVersion = subprocess.Popen('adb -s ' + self.device_id + ' shell getprop ro.build.version.release', shell=True,
                                      stdout=subprocess.PIPE).stdout.read().rstrip()
 
         if androidVersion is None or androidVersion == '':
@@ -160,7 +160,7 @@ class Logger:
             if self.screenshotJar is not None:
                 sceenshotCmd = 'java -jar '+self.screenshotJar+' -s ' + self.device_id + ' "' + filepath + ' "'
                 print sceenshotCmd
-                temp = subprocess.call(sceenshotCmd, stdout=FNULL, stderr=subprocess.STDOUT)
+                temp = subprocess.call(sceenshotCmd, stdout=FNULL, stderr=subprocess.STDOUT, shell=True)
                 print "Done capturing screenshot"
             else:
                 raise Exception("screenshot.jar couldn't be found in current directory or C:\\Python27")
@@ -563,7 +563,7 @@ class Logger:
         try:
             sceenshotCmd = 'java -jar '+self.screenshotJar+' -s ' + self.device_id + ' "' + dirName + '/Screenshot.png"'
             print sceenshotCmd
-            temp = subprocess.call(sceenshotCmd, stdout=FNULL, stderr=subprocess.STDOUT)
+            temp = subprocess.call(sceenshotCmd, stdout=FNULL, stderr=subprocess.STDOUT, shell=True)
             print "Done capturing screenshot"
         except Exception, e:
             print e
@@ -571,13 +571,13 @@ class Logger:
         forceCloseFile = open(dirName + "/logcat.txt", "w")
 
         forceCloseFile.write(subprocess.Popen('adb -s ' + self.device_id + ' wait-for-device logcat -d -v time',
-                                                      shell=False, stdout=subprocess.PIPE).stdout.read())
+                                                      shell=True, stdout=subprocess.PIPE).stdout.read())
         forceCloseFile.flush()
         forceCloseFile.close()
         print "Done capturing logcat"
         time.sleep(1)
         bugReportFile = open(dirName + "/bugreport.txt", "wb")
-        bugReportFile.write(subprocess.Popen('adb -s ' + self.device_id + ' wait-for-device bugreport', shell=False,
+        bugReportFile.write(subprocess.Popen('adb -s ' + self.device_id + ' wait-for-device bugreport', shell=True,
                                                      stdout=subprocess.PIPE).stdout.read())
         bugReportFile.flush()
         bugReportFile.close()
@@ -624,7 +624,7 @@ class Logger:
         resetLogcat = open(dirName + "/logcat.txt", "w")
 
         resetLogcat.write(subprocess.Popen('adb -s ' + self.device_id + ' wait-for-device logcat -d -v time',
-                                                      shell=False, stdout=subprocess.PIPE).stdout.read())
+                                                      shell=True, stdout=subprocess.PIPE).stdout.read())
         resetLogcat.flush()
         resetLogcat.close()
         print "Done capturing logcat"
@@ -632,12 +632,12 @@ class Logger:
         try:
             sceenshotCmd = 'java -jar '+self.screenshotJar+' -s ' + self.device_id + ' "' + dirName + '/Screenshot.png"'
             print sceenshotCmd
-            temp = subprocess.call(sceenshotCmd, stdout=FNULL, stderr=subprocess.STDOUT)
+            temp = subprocess.call(sceenshotCmd, stdout=FNULL, stderr=subprocess.STDOUT, shell=True)
             print "Done capturing screenshot"
         except Exception, e:
             print e
         bugReportFile = open(dirName + "/bugreport.txt", "wb")
-        bugReportFile.write(subprocess.Popen('adb -s ' + self.device_id + ' wait-for-device bugreport', shell=False,
+        bugReportFile.write(subprocess.Popen('adb -s ' + self.device_id + ' wait-for-device bugreport', shell=True,
                                                      stdout=subprocess.PIPE).stdout.read())
         bugReportFile.flush()
         bugReportFile.close()
@@ -682,7 +682,7 @@ class Logger:
         try:
             sceenshotCmd = 'java -jar '+self.screenshotJar+' -s ' + self.device_id + ' "' + dirName + '/Screenshot.png"'
             print sceenshotCmd
-            temp = subprocess.call(sceenshotCmd, stdout=FNULL, stderr=subprocess.STDOUT)
+            temp = subprocess.call(sceenshotCmd, stdout=FNULL, stderr=subprocess.STDOUT, shell=True)
             print "Done capturing screenshot"
         except Exception, e:
             print e
@@ -690,13 +690,13 @@ class Logger:
         anrFile = open(dirName + "/logcat.txt", "w")
 
         anrFile.write(subprocess.Popen('adb -s ' + self.device_id + ' wait-for-device logcat -d -v time',
-                                                      shell=False, stdout=subprocess.PIPE).stdout.read())
+                                                      shell=True, stdout=subprocess.PIPE).stdout.read())
         anrFile.flush()
         anrFile.close()
         print "Done capturing logcat"
         time.sleep(1)
         bugReportFile = open(dirName + "/bugreport.txt", "wb")
-        bugReportFile.write(subprocess.Popen('adb -s ' + self.device_id + ' wait-for-device bugreport', shell=False,
+        bugReportFile.write(subprocess.Popen('adb -s ' + self.device_id + ' wait-for-device bugreport', shell=True,
                                                      stdout=subprocess.PIPE).stdout.read())
         bugReportFile.flush()
         bugReportFile.close()
