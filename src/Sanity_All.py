@@ -4,6 +4,7 @@ import time
 import os
 import importlib
 import sys
+sys.path.append(os.getcwd())
 
 #import all the user defined modules
 import Logger
