@@ -1,0 +1,190 @@
+#import all the inbuilt modules
+import unittest
+import time
+import importlib
+import sys
+import os
+
+#import all the user defined modules
+import Logger
+import GlobalConfig
+
+#import Device class from uiautomator package
+from uiautomator import Device
+#Serial id of DUT
+deviceId= GlobalConfig.MasterDeviceId
+
+#Dynamically import the specified model folder and files
+UnitModule=importlib.import_module(GlobalConfig.MasterModel+'_'+GlobalConfig.MasterAndroidVersion+GlobalConfig.MasterGMSnonGMS)
+Config=UnitModule.Config()
+logger=Logger.Logger('Stress_Browser',deviceId)
+OS_version=GlobalConfig.MasterAndroidVersion
+
+class Stress_Browser(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    @classmethod
+    def tearDownClass(cls):
+        logger.closeLog()
+
+    def setUp(self):
+        try:
+            print 'Set Up'
+            self.input = Device(deviceId)
+            self.unit = UnitModule.Unit(self.input,deviceId,logger)
+            self.browser = UnitModule.Browser(self.input,deviceId,logger)
+         
+        except Exception, e:
+            print e
+            logger.setupError(e)
+            os._exit(1)
+            
+
+    def tearDown(self):
+        print 'Tear Down'
+        self.unit.sendKeyEvent('BACK')
+        self.unit.sendKeyEvent('BACK')
+        self.unit.sendKeyEvent('BACK')
+        self.unit.sendKeyEvent('HOME')
+        self.unit.sendKeyEvent('BACK')
+        
+
+
+
+#********************************************************************************************
+# Objective: Visit AT&T website
+
+# No of loops:  1000
+#********************************************************************************************
+    def test_001_visitATTWebsite(self, iteration=1000):
+        try:
+            print('test_001: Visit AT&T website')
+            logger.headerLog('test_001', 'Visit AT&T website for 1000 times')
+
+            failCount=0
+            for i in range(iteration):
+                try:
+                    print "Begin iteration:"+str(i+1)
+                    logger.log("Begin iteration:"+str(i+1))
+                    if not self.unit.launchApp(Config.Browser['text']):
+                        raise Exception("Unable to launch Browser App")
+                    logger.log("Launched Browser App")
+                    time.sleep(1)
+
+                    if not self.browser.openWebPage("www.att.com",None, False):
+                        raise Exception("Unable to open ATT WebPage ")
+                    logger.log("Opened ATT webpage")
+                    self.input.wait.update()
+                    time.sleep(10)
+
+                    self.input.press.back()
+                    self.input.press.back()
+                    self.input.press.home()
+                    logger.log("iteration "+str(i+1)+" passed")
+
+                except Exception,e:
+                    failCount+=1
+                    logger.log(str(e),'E')
+                    logger.log("iteration "+str(i+1)+" failed",'E','test_001_visitATTWebsite'+str(i+1))
+
+
+
+            if failCount < iteration*.05:
+                logger.logPass(iteration,iteration-failCount)
+                print "Test Passed"
+            else:
+
+                print failCount
+                raise Exception("Couldn't Opene ATT page for "+str(failCount)+" times")
+
+
+        except Exception, e:
+            logger.log(str(e),'E')
+            logger.logFail(iteration,iteration-failCount)
+
+
+        except KeyboardInterrupt:
+            logger.log("Test cancelled by User",'E')
+            logger.logFail()
+            logger.closeLog()
+            os._exit(1)
+
+
+#********************************************************************************************
+# Objective: Visit top websites
+# TPS Reference: NA
+# Description: 1.	Load each of the following web pages. Each of the pages shall completely render before moving to
+# the next page
+#                   a.	www.att.com
+#                   b.	www.yahoo.com
+#                   c.	www.facebook.com
+#                   d.	www.youtube.com
+#                   e.	www.nytimescom
+#              2.	One loop = loading above web pages a-e.
+
+# No of loops:  1000
+#********************************************************************************************
+    def test_002_visitTopWebsites(self, iteration=1000):
+        try:
+            print('test_002: Visit top websites for 1000 times')
+            logger.headerLog('test_002', 'Visit top websites for 1000 times')
+            
+            failCount=0
+            for i in range(iteration):
+                try:
+                    print "Begin iteration:"+str(i+1)
+                    logger.log("Begin iteration:"+str(i+1))
+                    if not self.unit.launchApp(Config.Browser['text']):
+                        raise Exception("Unable to launch Browser App")
+                    logger.log("Launched Browser App")
+                    time.sleep(1)
+
+                    for j in range(len(Config.TopWebsites)):
+                        
+                        if not self.browser.openWebPage(Config.TopWebsites[j],None, False):
+                            raise Exception("Unable to open WebPage "+ Config.TopWebsites[j])
+                        logger.log("Opened "+Config.TopWebsites[j])
+                        self.input.wait.update()
+                        time.sleep(3)
+
+                    self.input.press.back()
+                    self.input.press.back()
+                    self.input.press.home()
+                    logger.log("iteration "+str(i+1)+" passed")
+
+                except Exception,e:
+                    failCount+=1
+                    logger.log(str(e),'E')
+                    logger.log("iteration "+str(i+1)+" failed",'E','test_002_visitTopWebsites_'+str(i+1))
+
+        
+        
+            if failCount < iteration*.05:
+                logger.logPass(iteration,iteration-failCount)
+                print "Test Passed"
+            else:
+                
+                print failCount
+                raise Exception("Couldn't switchFromBrowser for "+str(failCount)+" times")
+                
+
+        except Exception, e:
+            logger.log(str(e),'E')
+            logger.logFail(iteration,iteration-failCount)
+            
+            
+        except KeyboardInterrupt:
+            logger.log("Test cancelled by User",'E')
+            logger.logFail()
+            logger.closeLog()
+            os._exit(1)
+
+
+
+
+if __name__=='__main__':
+    unittest.main()
+
+#To simulate Force close activity-> adb shell am start -n com.android.contacts/com.android.contacts.activities.ContactEditorActivity
